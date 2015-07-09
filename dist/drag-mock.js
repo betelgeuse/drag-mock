@@ -267,20 +267,76 @@ function createModernEvent(eventName, eventType, eventProperties) {
 function createLegacyEvent(eventName, eventType, eventProperties) {
   var event;
 
+  // https://developer.mozilla.org/en-US/docs/Web/API/Event
+  // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/MouseEvent
+  var options = {
+    bubbles: true,
+    cancelable: true,
+    view: window,
+    detail: 0,
+    screenX: 0,
+    screenY: 0,
+    clientX: 0,
+    clientY: 0,
+    ctrlKey: false,
+    altKey: false,
+    shiftKey: false,
+    metaKey: false,
+    button: 0,
+    relatedTarget: null
+  };
+
+  // copy eventProperties
+  if (eventProperties) {
+    mergeInto(options, eventProperties);
+  }
+
   switch (eventType) {
     case 'MouseEvent':
       event = document.createEvent('MouseEvent');
-      event.initEvent(eventName, true, true);
+      event.initMouseEvent(eventName,
+                           options.bubbles,
+                           options.cancelable,
+                           options.view,
+                           options.detail,
+                           options.screenX,
+                           options.screenY,
+                           options.clientX,
+                           options.clientY,
+                           options.ctrlKey,
+                           options.altKey,
+                           options.shiftKey,
+                           options.metaKey,
+                           options.button,
+                           options.relatedTarget);
       break;
 
     default:
       event = document.createEvent('CustomEvent');
-      event.initCustomEvent(eventName, true, true, 0);
+      event.initCustomEvent(eventName,
+                            options.bubbles,
+                            options.cancelable,
+                            options.detail);
   }
 
-  // copy eventProperties into event
+  // copy eventProperties that were not given to init to Event
   if (eventProperties) {
-    mergeInto(event, eventProperties);
+    delete options.bubbles;
+    delete options.cancelable;
+    delete options.view;
+    delete options.detail;
+    delete options.screenX;
+    delete options.screenY;
+    delete options.clientX;
+    delete options.clientY;
+    delete options.ctrlKey;
+    delete options.altKey;
+    delete options.shiftKey;
+    delete options.metaKey;
+    delete options.button;
+    delete options.relatedTarget;
+
+    mergeInto(event, options);
   }
 
   return event;
